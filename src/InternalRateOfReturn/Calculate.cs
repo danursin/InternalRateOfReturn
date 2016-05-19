@@ -8,31 +8,20 @@ namespace InternalRateOfReturn
         public static double InternalRateOfReturn(double[] cashflow)
         {
             const double initialGuess = 0.1;
-            const double epsilon = 0.000001;
-            const int maxIterations = 100;
 
+            // f(x) = C0 + C1(x)^-1 + C2(x)^-2 + ... + Cn(x)^-n
             var terms = new Dictionary<int, double>();
             for (var exponent = 0; exponent < cashflow.Length; exponent++)
             {
-                terms.Add(-1*exponent, cashflow[exponent]);
+                terms.Add(-1 * exponent, cashflow[exponent]);
             }
 
             var f = new LaurentPolynomial(terms);
-            var fPrime = f.Derivative;
 
-            var onePlusRi = (1 + initialGuess);
-            var iterations = 0;
-            while (iterations < maxIterations)
-            {
-                var onePlusRiPlus1 = onePlusRi - f.ValueAt(onePlusRi)/fPrime.ValueAt(onePlusRi);
-                if (Math.Abs(onePlusRiPlus1 - onePlusRi) < epsilon)
-                {
-                    return (onePlusRiPlus1 - 1);
-                }
-                onePlusRi = onePlusRiPlus1;
-                iterations += 1;
-            }
-            return onePlusRi;
+            var onePlusIrr = f.Root(1 + initialGuess);
+            var irr = onePlusIrr - 1;
+            
+            return irr;
         }
     }
 }

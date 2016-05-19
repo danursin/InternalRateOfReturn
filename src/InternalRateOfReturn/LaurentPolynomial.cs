@@ -2,32 +2,26 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace InternalRateOfReturn
 {
     public class LaurentPolynomial
     {
+        private const double Epsilon = 1e-12;
         private readonly Dictionary<int, double> _terms;
         public LaurentPolynomial(Dictionary<int, double> terms)
         {
             _terms = terms;
         }
         
-        public LaurentPolynomial Derivative
+        public LaurentPolynomial Derivative()
         {
-            get
+            var terms = new Dictionary<int, double>();
+            foreach (var term in _terms.Where(x => x.Key != 0))
             {
-                var terms = new Dictionary<int, double>();
-                foreach (var term in _terms.Where(x => x.Key != 0))
-                {
-                    if (term.Key != 0)
-                    {
-                        terms.Add(term.Key - 1, term.Key*term.Value);
-                    }
-                }
-                return new LaurentPolynomial(terms);
+                terms.Add(term.Key - 1, term.Key*term.Value);
             }
+            return new LaurentPolynomial(terms);
         }
 
         public double ValueAt(double x)
@@ -40,10 +34,25 @@ namespace InternalRateOfReturn
             return val;
         }
 
-        public override string ToString()
+        public double Root(double guess, int maxIterations = 20)
         {
-            var orderedKeys = _terms.Keys.OrderByDescending(x => x).Select(x => string.Format("{0}X^{1}",_terms[x], x));
-            return string.Join("+", orderedKeys);
+            var f = this;
+            var fPrime = Derivative();
+            
+            var current = guess;
+            var iterations = 0;
+            while (iterations < maxIterations)
+            {
+                // Newton's Method
+                var next = current - f.ValueAt(current) / fPrime.ValueAt(current);
+                if (Math.Abs(next - current) < Epsilon)
+                {
+                    return next;
+                }
+                current = next;
+                iterations += 1;
+            }
+            return current;
         }
     }
 }
